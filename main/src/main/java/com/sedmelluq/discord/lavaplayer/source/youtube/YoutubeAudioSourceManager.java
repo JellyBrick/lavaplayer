@@ -455,8 +455,13 @@ public class YoutubeAudioSourceManager implements AudioSourceManager, HttpConfig
     JsonBrowser jsonResponse = json.index(1).safeGet("response");
 
     JsonBrowser alerts = jsonResponse.safeGet("alerts");
+    JsonBrowser errors = jsonResponse.safeGet("responseContext").safeGet("errors");
 
-    if (!alerts.isNull()) throw new FriendlyException(alerts.index(0).safeGet("alertRenderer").safeGet("text").safeGet("simpleText").text(), COMMON, null);
+    if (!alerts.isNull()) {
+      throw new FriendlyException(alerts.index(0).safeGet("alertRenderer").safeGet("text").safeGet("simpleText").text(), COMMON, null);
+    } else if (!errors.isNull()) {
+      throw new FriendlyException(errors.get("error").index(0).get("externalErrorMessage").text(), COMMON, null);
+    }
 
     JsonBrowser info = jsonResponse
             .safeGet("sidebar")
